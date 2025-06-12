@@ -69,16 +69,16 @@ checkpoint_filepath = 'temporarily_best_brain_mri_model.h5'
 # Create the ModelCheckpoint callback
 model_checkpoint_callback = ModelCheckpoint(
     filepath=checkpoint_filepath,
-    save_weights_only=False,  # Set to True if you only want to save weights, False to save entire model
-    monitor='val_accuracy',   # Metric to monitor for improvement
-    mode='max',               # 'max' means we want to maximize 'val_accuracy'
-    save_best_only=True,      # Only save when the monitored metric improves
-    verbose=1                 # Show messages when a model is saved
+    save_weights_only=False,  
+    monitor='val_accuracy',  
+    mode='max',               
+    save_best_only=True,      
+    verbose=1                 
 )
 
 history = model.fit(
     train_generator,
-    steps_per_epoch=train_generator.samples // BATCH_SIZE, # Number of batches per epoch
+    steps_per_epoch=train_generator.samples // BATCH_SIZE, 
     epochs=EPOCHS,
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE,
