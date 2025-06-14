@@ -57,8 +57,8 @@ model = Sequential([
 ])
 
 
-from tensorflow.keras.optimizers import Adam
-model.compile(optimizer= Adam(learning_rate=0.0001), 
+from tensorflow.keras.optimizers import SGD
+model.compile(optimizer= SGD(), # Your current learning rate
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
@@ -69,24 +69,34 @@ checkpoint_filepath = 'temporarily_best_brain_mri_model.h5'
 # Create the ModelCheckpoint callback
 model_checkpoint_callback = ModelCheckpoint(
     filepath=checkpoint_filepath,
-    save_weights_only=False,  
-    monitor='val_accuracy',  
-    mode='max',               
-    save_best_only=True,      
-    verbose=1                 
+    save_weights_only=False,  # Set to True if you only want to save weights, False to save entire model
+    monitor='val_accuracy',   # Metric to monitor for improvement
+    mode='max',               # 'max' means we want to maximize 'val_accuracy'
+    save_best_only=True,      # Only save when the monitored metric improves
+    verbose=1                 # Show messages when a model is saved
 )
 
 history = model.fit(
     train_generator,
-    steps_per_epoch=train_generator.samples // BATCH_SIZE, 
+    steps_per_epoch=train_generator.samples // BATCH_SIZE, # Number of batches per epoch
     epochs=EPOCHS,
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE,
-    callbacks=[model_checkpoint_callback]
+    callbacks=[model_checkpoint_callback] # Pass the callback list to model.fit
 )
 
+def error(y_test, y_preds):
+  mae_fn= tf.keras.losses.MeanAbsoluteError()
+  mae= mae_fn(y_test, y_preds).numpy()
+  mse_fn = tf.keras.losses.MeanSquaredError()
+  mse = mse_fn(y_test, y_preds).numpy()
+  print(f"Mean absolute error is: {mae}")
+  print(f"Mean squared error is: {mse}")
+
+# Plotting code remains the same
 import matplotlib.pyplot as plt
 
+# Plot training and validation accuracy/loss
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
 loss = history.history['loss']
@@ -108,8 +118,9 @@ plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
 
-
-
+# You can also evaluate directly on the validation set for final metrics
+# IMPORTANT: This evaluation will be on the model's state at the VERY LAST epoch,
+# not necessarily the best epoch saved by the checkpoint.
 loss, accuracy = model.evaluate(validation_generator)
 print(f"Validation Loss (Last Epoch Model): {loss:.4f}")
 print(f"Validation Accuracy (Last Epoch Model): {accuracy:.4f}")
